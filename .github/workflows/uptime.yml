@@ -1,0 +1,22 @@
+﻿name: Uptime check
+# Every 15 minutes: is the OS page up, and does the cloud database answer? A failure sends GitHub's
+# failed-run email to the repository owner. Nothing secret is used here (the publishable key is public).
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: OS page answers
+        run: |
+          code=$(curl -s -o /tmp/page.html -w '%{http_code}' --max-time 20 https://glitchlabstudio.github.io/)
+          echo "page: $code"
+          test "$code" = "200"
+          grep -q 'GLITCH.LAB OS' /tmp/page.html
+      - name: Database and sign-in service answer
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -H 'apikey: sb_publishable_876zD64h1tUJgj2J7_Jj3w_9xMz64k_' 'https://icpndfzhhmoybkonfwsx.supabase.co/auth/v1/health')
+          echo "auth health: $code"
+          test "$code" = "200"
